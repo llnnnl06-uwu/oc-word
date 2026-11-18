@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OC Word</title>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- SIDEBAR ซ้าย -->
+    <aside class="sidebar">
+      <div class="author-card">
+        <div class="profile-ring-wrap">
+          <img src="https://picsum.photos/200" id="profile-img" alt="Avatar" class="profile-avatar-style circle-frame">
+        </div>
+         <h2 id="profile-name"></h2>
+        <p id="profile-bio">คลังบันทึกตัวละครและเรื่องราวคอมมู</p>
+        <button onclick="openProfileModal()" class="btn-edit-profile">แก้ไขโปรไฟล์</button>
+      </div>
+
+      <div class="theme-buttons-box">
+        <label>เลือกธีมสีด่วน: </label>
+        <div class="theme-grid-btns">
+          <button onclick="changeTheme('dark')" class="t-btn dark-t">มืด</button>
+          <button onclick="changeTheme('light')" class="t-btn light-t">สว่าง</button>
+          <button onclick="changeTheme('purple')" class="t-btn purple-t">ม่วง</button>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button onclick="switchTab('ocs')" id="btn-ocs" class="active">ทำเนียบตัวละคร (OC Form)</button>
+        <button onclick="switchTab('gallery-hub')" id="btn-gallery-hub">คลังอัลบั้มรูป OC</button>
+        <button onclick="switchTab('playlist')" id="btn-playlist">เพลย์ลิสต์เพลง (Playlist)</button>
+        <button onclick="switchTab('items')" id="btn-items">คลังไอเทม & พลัง</button>
+        <button onclick="switchTab('blog')" id="btn-blog">บันทึก Lore & โพสต์</button>
+
+      </nav>
+
+      <!-- ปุ่มสำรองข้อมูล (Backup / Restore) -->
+      <div class="backup-box" style="margin-top:15px; padding:10px; background:var(--bg-input); border-radius:8px; border:1px solid var(--border-color);">
+        <label style="font-size:0.8rem; color:var(--text-sub); display:block; margin-bottom:6px;">จัดการข้อมูลเว็บ:</label>
+        <div style="display:flex; gap:6px;">
+          <button onclick="exportDataJSON()" class="t-btn dark-t" style="flex:1; font-size:0.7rem;">📥 โหลดสำรอง</button>
+          <button onclick="document.getElementById('import-file').click()" class="t-btn purple-t" style="flex:1; font-size:0.7rem;">📤 กู้คืนข้อมูล</button>
+          <input type="file" id="import-file" style="display:none" accept=".json" onchange="importDataJSON(event)">
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT ตรงกลาง -->
+    <main class="main-content">
+      <!-- แท็บที่ 1: ทำเนียบตัวละคร -->
+      <div id="tab-ocs" class="tab-panel">
+        <section class="card-section">
+          <h2>ฟอร์มลงทะเบียน / สร้างโปรไฟล์ตัวละคร OC</h2>
+          <form id="oc-form" onsubmit="handleOCSubmit(event)">
+            <h3>1. ข้อมูลพื้นฐาน</h3>
+            <div class="input-row">
+              <input type="text" id="oc-id" placeholder="รหัสไอดี (เช่น oc-01)" required>
+              <input type="text" id="oc-name" placeholder="ชื่อ-นามสกุล" required>
+            </div>
+            <div class="input-row">
+              <input type="text" id="oc-nickname" placeholder="ชื่อเล่น">
+              <input type="text" id="oc-role" placeholder="บทบาท / สังกัด / จักรวาลเรื่อง">
+              <select id="oc-category" required>
+                <option value="" disabled selected>-- เลือกช่วงอายุ (หมวดหมู่) --</option>
+                <option value="ทารก">ทารก</option>
+                <option value="นักเรียน">นักเรียน</option>
+                <option value="นักศึกษา">นักศึกษา</option>
+                <option value="วัยทำงาน">วัยทำงาน</option>
+                <option value="วัยเกษียณ">วัยเกษียณ</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <input type="text" id="oc-age" placeholder="อายุ (ระบุตัวเลขหรือปี)">
+              <input type="text" id="oc-height" placeholder="ส่วนสูง">
+              <input type="text" id="oc-weight" placeholder="น้ำหนัก">
+              <input type="text" id="oc-blood" placeholder="กรุ๊ปเลือด">
+            </div>
+            <h3>2. รูปภาพ & เพลงประจำตัว</h3>
+            <div class="input-row">
+              <div style="flex: 1;">
+                <label style="font-size:0.8rem; color:var(--text-sub);">อัปโหลดไฟล์รูป / GIF:</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(this, '#oc-avatar')">
+                <img id="oc-avatar-preview" src="" style="max-width:80px; max-height:80px; object-fit:cover; border-radius:8px; display:none; margin-top:6px;" alt="preview">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size:0.8rem; color:var(--text-sub);">ลิงก์รูป / GIF (URL):</label>
+                <input type="text" id="oc-avatar" required>
+              </div>
+            </div>
+            <input type="text" id="oc-music" placeholder="ลิงก์เพลง YouTube ประจำตัว OC">
+            <h3>3. ข้อมูลส่วนตัว</h3>
+            <textarea id="oc-personal" placeholder="สิ่งที่ชอบ / ไม่ชอบ, งานอดิเรก..." rows="2"></textarea>
+            <h3>4. อุปนิสัย (Personality)</h3>
+            <textarea id="oc-personality" placeholder="อุปนิสัยทั่วไป, พฤติกรรม..." rows="2"></textarea>
+            <h3>5. ประวัติความเป็นมา (Background)</h3>
+            <textarea id="oc-background" placeholder="ประวัติโดยสังเขป..." rows="3"></textarea>
+            <button type="submit" class="btn-submit" style="margin-top: 10px;">บันทึกใบสมัครตัวละคร</button>
+          </form>
+        </section>
+        <section class="card-section">
+          <div class="section-header">
+            <h2>การ์ดตัวละครทั้งหมด</h2>
+            <input type="text" id="search-oc" placeholder="ค้นหาตัวละคร..." oninput="filterOCs()">
+          </div>
+          <div class="filter-tabs" id="oc-category-filters">
+            <button class="filter-btn active" onclick="filterOCCategory('all')">ทั้งหมด</button>
+            <button class="filter-btn" onclick="filterOCCategory('ทารก')">ทารก</button>
+            <button class="filter-btn" onclick="filterOCCategory('นักเรียน')">นักเรียน</button>
+            <button class="filter-btn" onclick="filterOCCategory('นักศึกษา')">นักศึกษา</button>
+            <button class="filter-btn" onclick="filterOCCategory('วัยทำงาน')">วัยทำงาน</button>
+            <button class="filter-btn" onclick="filterOCCategory('วัยเกษียณ')">วัยเกษียณ</button>
+          </div>
+          <div id="oc-container" class="oc-grid"></div>
+        </section>
+      </div>
+
+      <!-- แท็บที่ 2: คลังอัลบั้มรูปภาพ OC -->
+      <div id="tab-gallery-hub" class="tab-panel" style="display: none;">
+        <section class="card-section">
+          <h2>คลังอัลบั้มรูปภาพ OC</h2>
+
+          <div id="gallery-hub-selector" class="gallery-hub-grid"></div>
+        </section>
+      </div>
+
+      <!-- แท็บที่ 3: เพลย์ลิสต์เพลง -->
+      <div id="tab-playlist" class="tab-panel" style="display: none;">
+        <section class="card-section">
+          <h2>เพิ่มเพลงลงในเพลย์ลิสต์รวมของเว็บ</h2>
+          <form id="playlist-form">
+            <div class="input-row">
+              <input type="text" id="pl-title" placeholder="ชื่อเพลง / ชื่อธีม *" required>
+              <input type="text" id="pl-artist" placeholder="ชื่อศิลปิน">
+            </div>
+            <input type="text" id="pl-url" placeholder="ลิงก์ YouTube (เช่น youtu.be/...)*" required>
+            <button type="submit" class="btn-submit">เพิ่มเพลงเข้าเพลย์ลิสต์</button>
+          </form>
+        </section>
+        <section class="card-section">
+          <div class="section-header">
+            <h2>รายการเพลงทั้งหมดในเพลย์ลิสต์</h2>
+            <input type="text" id="search-playlist" placeholder="ค้นหาชื่อเพลงหรือศิลปิน..." oninput="renderPlaylist()">
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="cursor:pointer; font-size: 0.9rem; color: var(--text-main);">
+              <input type="checkbox" id="filter-favorite-songs" onchange="renderPlaylist()"> แสดงเฉพาะเพลงโปรด
+            </label>
+          </div>
+          <div id="playlist-container"></div>
+        </section>
+      </div>
+
+      <!-- แท็บที่ 4: คลังไอเทม -->
+      <div id="tab-items" class="tab-panel" style="display: none;">
+        <section class="card-section">
+          <h2>บันทึกไอเทม พลังวิเศษ หรือกิจการ/สถานที่</h2>
+          <form id="item-form" onsubmit="handleItemSubmit(event)">
+            <div class="input-row">
+              <input type="text" id="item-name" placeholder="ชื่อไอเทม / ชื่อพลัง *" required>
+              <input type="text" id="item-owner" placeholder="เจ้าของ *" required>
+              <select id="item-category">
+                <option value="อาวุธ/อุปกรณ์">อาวุธ / อุปกรณ์</option>
+                <option value="พลังวิเศษ/ทักษะ">พลังวิเศษ / ทักษะ</option>
+                <option value="กิจการ/สถานที่">กิจการ / สถานที่</option>
+                <option value="สวมใส่/ใช้งาน">สวมใส่ / ไอเทมใช้งาน</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <div style="flex:1;">
+                <label style="font-size:0.8rem; color:var(--text-sub);">อัปโหลดไฟล์รูป / GIF:</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(this, '#item-img')">
+              </div>
+              <div style="flex:1;">
+                <label style="font-size:0.8rem; color:var(--text-sub);">หรือ วาง URL รูป / GIF:</label>
+                <input type="text" id="item-img" placeholder="https://...">
+              </div>
+            </div>
+            <div class="stat-sliders-box">
+              <label>ค่าพลัง / คุณสมบัติ: </label>
+              <div class="slider-row">
+                <span>พลังโจมตี (ATK): <b id="atk-val">50</b></span>
+                <input type="range" id="item-atk" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#atk-val').innerText=this.value; document.querySelector('#item-atk-num').value=this.value;">
+                <input type="number" id="item-atk-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#item-atk').value=this.value; document.querySelector('#atk-val').innerText=this.value;">
+              </div>
+              <div class="slider-row">
+                <span>พลังป้องกัน (DEF): <b id="def-val">50</b></span>
+                <input type="range" id="item-def" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#def-val').innerText=this.value; document.querySelector('#item-def-num').value=this.value;">
+                <input type="number" id="item-def-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#item-def').value=this.value; document.querySelector('#def-val').innerText=this.value;">
+              </div>
+              <div class="slider-row">
+                <span>ความเร็ว (SPD): <b id="spd-val">50</b></span>
+                <input type="range" id="item-spd" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#spd-val').innerText=this.value; document.querySelector('#item-spd-num').value=this.value;">
+                <input type="number" id="item-spd-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#item-spd').value=this.value; document.querySelector('#spd-val').innerText=this.value;">
+              </div>
+            </div>
+            <textarea id="item-desc" placeholder="รายละเอียด..." rows="3" required></textarea>
+            <button type="submit" class="btn-submit">บันทึกข้อมูลคลัง</button>
+          </form>
+        </section>
+        <section class="card-section">
+          <div class="section-header">
+            <h2>คลังทั้งหมดในระบบ</h2>
+            <input type="text" id="search-item" placeholder="ค้นหาไอเทม..." oninput="filterItems()">
+          </div>
+          <div class="filter-tabs" id="item-category-filters">
+            <button class="filter-btn active" onclick="filterItemCategory('all')">ทั้งหมด</button>
+            <button class="filter-btn" onclick="filterItemCategory('อาวุธ/อุปกรณ์')">อาวุธ/อุปกรณ์</button>
+            <button class="filter-btn" onclick="filterItemCategory('พลังวิเศษ/ทักษะ')">พลังวิเศษ/ทักษะ</button>
+            <button class="filter-btn" onclick="filterItemCategory('กิจการ/สถานที่')">กิจการ/สถานที่</button>
+            <button class="filter-btn" onclick="filterItemCategory('pinned')">♥ ปักหมุด</button>
+          </div>
+          <span id="item-count" style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-sub);"></span>
+          <div id="item-container" class="oc-grid"></div>
+        </section>
+      </div>
+
+      <!-- แท็บที่ 5: บันทึก Lore -->
+      <div id="tab-blog" class="tab-panel" style="display: none;">
+        <section class="card-section">
+          <h2>บันทึก Lore และเรื่องราวโลก</h2>
+          <form id="lore-form" onsubmit="handleLoreSubmit(event)">
+            <div class="input-row">
+              <input type="text" id="lore-title" placeholder="ชื่อหัวข้อเรื่องราว..." required>
+              <select id="lore-oc-select">
+                <option value="">-- เลือกตัวละครที่เกี่ยวข้อง (ถ้ามี) --</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <input type="text" id="lore-category" placeholder="หมวดหมู่ (เช่น เหตุการณ์, สถานที่)">
+              <input type="text" id="lore-img" placeholder="ลิงก์รูป GIF หรือรูปประกอบ (URL)">
+            </div>
+            <textarea id="lore-desc" placeholder="เนื้อหาเรื่องราว..." rows="4" required></textarea>
+            <button type="submit" class="btn-submit">เผยแพร่บันทึก Lore</button>
+          </form>
+        </section>
+        <section class="card-section">
+           <div class="section-header">
+             <h2>บันทึกทั้งหมด</h2>
+             <div style="display:flex; gap:6px; align-items:center;">
+               <button onclick="setLoreFilter('all')" class="t-btn dark-t" style="font-size:0.75rem;">ทั้งหมด</button>
+               <button onclick="setLoreFilter('liked')" class="t-btn dark-t" style="font-size:0.75rem;">♥ ปักหมุด</button>
+               <input type="text" id="search-lore" placeholder="ค้นหาบันทึก..." oninput="filterLore()">
+             </div>
+           </div>
+          <div id="blog-feed"></div>
+        </section>
+      </div>
+
+
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="right-panel">
+      <!-- WIDGET เครื่องเล่นเพลง -->
+      <div class="widget-box music-widget-box">
+        <div class="player-info">
+          <span><b id="current-song-name">เบอร์สอง</b> <small id="current-artist-name" style="color:var(--text-sub);">(PUN)</small></span>
+        </div>
+        <div id="yt-player-box" style="width: 100%; height: 130px; background: #000; border-radius: 8px; overflow: hidden; margin-top: 8px;">
+          <div id="yt-player-placeholder"></div>
+        </div>
+        <div class="music-controls" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between;">
+          <button onclick="prevSong()" title="ก่อนหน้า">ก่อนหน้า</button>
+          <button onclick="togglePlayPause()" id="btn-play-pause" title="เล่น/หยุด">เล่น/หยุด</button>
+          <button onclick="nextSong()" title="ถัดไป">ถัดไป</button>
+        </div>
+      </div>
+
+      <div class="widget-box featured-oc-widget">
+        <h3>OC Show</h3>
+        <div id="featured-oc-card" class="featured-card">
+          <img id="feat-img" src="https://via.placeholder.com/150" alt="Featured">
+          <h4 id="feat-name">ยังไม่มีตัวละคร</h4>
+          <span id="feat-role" class="badge">--</span>
+          <p id="feat-quote" contenteditable="true" onblur="saveFeaturedQuote()" oninput="saveFeaturedQuote()" style="cursor:text; outline:none; border-bottom:1px dashed var(--text-sub);">"เพิ่มตัวละครในคลังสิ!"</p>
+          <button onclick="randomizeFeaturedOC()" class="btn-random">จ๊ะเอ๋</button>
+        </div>
+      </div>
+
+      <div class="widget-box gallery-widget">
+        <h3>คลังรูปภาพรวม (Art Gallery)</h3>
+        <div id="quick-gallery" class="gallery-grid"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- MODALS -->
+  <div id="modal-profile" class="modal">
+    <div class="modal-content">
+       <h3>แก้ไขโปรไฟล์ส่วนตัว</h3>
+      <input type="text" id="edit-profile-name" placeholder="ชื่อบล็อก">
+      <div class="input-row">
+        <div style="flex:1;">
+          <label style="font-size:0.8rem; color:var(--text-sub);">อัปโหลดรูป / GIF โปรไฟล์:</label>
+          <input type="file" accept="image/*" onchange="handleImageUpload(this, '#edit-profile-img')">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.8rem; color:var(--text-sub);">หรือ วาง URL รูป / GIF:</label>
+          <input type="text" id="edit-profile-img" placeholder="https://...">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.85rem; color:var(--text-sub);">เลือกลักษณะกรอบโปรไฟล์:</label>
+        <div class="input-row" style="margin-top:6px;">
+          <label style="cursor:pointer; font-size:0.85rem;"><input type="radio" name="profile-frame" value="circle" checked> กรอบวงกลม</label>
+          <label style="cursor:pointer; font-size:0.85rem;"><input type="radio" name="profile-frame" value="square"> กรอบสี่เหลี่ยม</label>
+        </div>
+      </div>
+      <textarea id="edit-profile-bio" placeholder="คำอธิบายสั้นๆ..." rows="2"></textarea>
+      <div class="modal-actions">
+        <button onclick="saveProfile()" class="btn-submit">บันทึก</button>
+        <button onclick="closeProfileModal()" class="btn-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-item-edit" class="modal">
+    <div class="modal-content modal-large">
+      <h3>แก้ไขไอเทม</h3>
+      <input type="hidden" id="edit-item-idx">
+      <input type="text" id="edit-item-name" placeholder="ชื่อไอเทม" required>
+      <input type="text" id="edit-item-owner" placeholder="เจ้าของ">
+      <input type="text" id="edit-item-category" placeholder="หมวด">
+      <input type="file" accept="image/*" onchange="handleImageUpload(this, '#edit-item-img')">
+      <img id="edit-item-img-preview" src="" style="max-width:80px; max-height:80px; object-fit:cover; border-radius:8px; display:none;" alt="preview">
+      <input type="text" id="edit-item-img" placeholder="URL รูป">
+      <textarea id="edit-item-desc" placeholder="รายละเอียด" rows="4"></textarea>
+      <label>ATK: <b id="edit-atk-val">50</b></label>
+      <div style="display:flex; gap:8px;"><input type="range" id="edit-item-atk" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#edit-item-atk-num').value=this.value; document.querySelector('#edit-atk-val').innerText=this.value;"><input type="number" id="edit-item-atk-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#edit-item-atk').value=this.value; document.querySelector('#edit-atk-val').innerText=this.value;"></div>
+      <label>DEF: <b id="edit-def-val">50</b></label>
+      <div style="display:flex; gap:8px;"><input type="range" id="edit-item-def" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#edit-item-def-num').value=this.value; document.querySelector('#edit-def-val').innerText=this.value;"><input type="number" id="edit-item-def-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#edit-item-def').value=this.value; document.querySelector('#edit-def-val').innerText=this.value;"></div>
+      <label>SPD: <b id="edit-spd-val">50</b></label>
+      <div style="display:flex; gap:8px;"><input type="range" id="edit-item-spd" min="0" max="100" value="50" style="flex:1;" oninput="document.querySelector('#edit-item-spd-num').value=this.value; document.querySelector('#edit-spd-val').innerText=this.value;"><input type="number" id="edit-item-spd-num" min="0" max="100" value="50" style="width:75px; min-width:75px; padding:6px 8px; text-align:center; font-size:0.85rem;" oninput="document.querySelector('#edit-item-spd').value=this.value; document.querySelector('#edit-spd-val').innerText=this.value;"></div>
+      <div class="modal-actions">
+        <button onclick="saveItemEdit()" class="btn-submit">บันทึก</button>
+        <button onclick="closeItemEditModal()" class="btn-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-lore-edit" class="modal">
+    <div class="modal-content modal-large">
+      <h3>แก้ไขบันทึก Lore</h3>
+      <input type="hidden" id="edit-lore-idx">
+      <input type="text" id="edit-lore-title" placeholder="ชื่อเรื่อง" required>
+      <input type="text" id="edit-lore-category" placeholder="หมวดหมู่">
+      <input type="file" accept="image/*" onchange="handleImageUpload(this, '#edit-lore-img')">
+      <img id="edit-lore-img-preview" src="" style="max-width:80px; max-height:80px; object-fit:cover; border-radius:8px; display:none;" alt="preview">
+      <input type="text" id="edit-lore-img" placeholder="URL รูป">
+      <textarea id="edit-lore-desc" placeholder="รายละเอียด" rows="4"></textarea>
+      <div class="modal-actions">
+        <button onclick="saveLoreEdit()" class="btn-submit">บันทึก</button>
+        <button onclick="closeLoreEditModal()" class="btn-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-oc-gallery" class="modal">
+    <div class="modal-content modal-large">
+      <div class="view-header">
+        <img id="gal-oc-img" src="" alt="Avatar">
+        <div>
+          <h2 id="gal-oc-name"></h2>
+          <p style="color:var(--text-sub); font-size:0.85rem;">คลังอัลบั้มรูปส่วนตัว</p>
+        </div>
+      </div>
+      <button type="button" onclick="document.querySelector('#oc-gallery-form').style.display = document.querySelector('#oc-gallery-form').style.display==='none'?'block':'none'" class="btn-submit" style="font-size:0.85rem; padding:6px 12px; margin-bottom:8px;">+ เพิ่มรูปภาพใหม่</button>
+      <form id="oc-gallery-form" style="display:none; margin-top:10px; background: var(--bg-input); padding: 12px; border-radius:8px; border:1px solid var(--border-color);">
+        <input type="hidden" id="gal-char-id">
+        <div class="input-row">
+          <div style="flex:1;">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this, '#gal-img-url')">
+          </div>
+          <div style="flex:1;">
+            <input type="text" id="gal-img-url" placeholder="หรือ วาง URL รูป / GIF *" required>
+          </div>
+        </div>
+        <input type="text" id="gal-caption" placeholder="แคปชันรูปภาพ / บันทึกเรื่องราว...">
+        <button type="submit" class="btn-submit" style="font-size:0.85rem; padding: 8px;">อัปโหลดลงอัลบั้ม</button>
+      </form>
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+        <button onclick="setGalFilter('all')" class="t-btn dark-t" style="font-size:0.75rem;">ทั้งหมด</button>
+        <button onclick="setGalFilter('liked')" class="t-btn dark-t" style="font-size:0.75rem;">♥ ถูกใจ</button>
+        <button onclick="if(confirm('ลบทั้งหมดในอัลบั้มนี้?')){localStorage.removeItem('ig_gallery_'+currentGalleryCharId); loadOCGalleryImages(currentGalleryCharId);}" class="t-btn dark-t" style="font-size:0.75rem; color:#f87171;">ลบทั้งหมด</button>
+      </div>
+      <h3 style="margin-top:8px; color:var(--accent-color);">ภาพในอัลบั้มทั้งหมด</h3>
+      <div id="ig-feed-container" class="ig-feed-grid"></div>
+      <button onclick="closeOCGalleryModal()" class="btn-cancel" style="margin-top:15px;">ปิดอัลบั้ม</button>
+    </div>
+  </div>
+
+  <div id="modal-image-preview" class="modal" onclick="closeImageModal()">
+    <div class="modal-content" style="background:transparent; border:none; max-width: 90vw; text-align:center;">
+      <img id="preview-full-img" src="" style="max-width:100%; max-height:85vh; object-fit:contain; border-radius: 12px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid var(--accent-color);">
+      <p style="color:#fff; margin-top:10px; font-size:0.9rem;">(คลิกที่ไหนก็ได้เพื่อปิด)</p>
+    </div>
+  </div>
+
+  <div id="modal-view-oc" class="modal">
+    <div class="modal-content modal-large">
+      <div class="view-header">
+        <img id="view-oc-img" src="" alt="Avatar">
+        <div>
+          <h2 id="view-oc-name"></h2>
+          <span id="view-oc-id" class="badge"></span>
+          <p><b>บทบาท/สังกัด: </b><span id="view-oc-role"></span> | <b>ช่วงอายุ: </b><span id="view-oc-cat" style="color:var(--accent-color);"></span></p>
+        </div>
+      </div>
+      <div class="view-body">
+        <p><b>สถิติร่างกาย:</b> <span id="view-oc-stats"></span></p>
+        <p><b>ข้อมูลส่วนตัว: </b></p>
+        <div id="view-oc-personal" class="view-box"></div>
+        <p><b>อุปนิสัย (Personality):</b></p>
+        <div id="view-oc-personality" class="view-box"></div>
+        <p><b>ประวัติ Background:</b></p>
+        <div id="view-oc-bg" class="view-box"></div>
+        <div id="view-oc-music-wrap" style="margin-top:10px;"></div>
+      </div>
+      <button onclick="closeViewModal()" class="btn-submit" style="margin-top:15px;">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+
+  <div id="modal-oc" class="modal">
+    <div class="modal-content">
+      <h3>แก้ไขข้อมูลใบสมัคร OC</h3>
+      <input type="hidden" id="edit-oc-mongo-id">
+      <input type="text" id="edit-oc-name" placeholder="ชื่อ-นามสกุล">
+      <div class="input-row">
+        <input type="text" id="edit-oc-nickname" placeholder="ชื่อเล่น">
+        <input type="text" id="edit-oc-role" placeholder="บทบาท/สังกัด">
+        <select id="edit-oc-category">
+          <option value="ทารก">ทารก</option>
+          <option value="นักเรียน">นักเรียน</option>
+          <option value="นักศึกษา">นักศึกษา</option>
+          <option value="วัยทำงาน">วัยทำงาน</option>
+          <option value="วัยเกษียณ">วัยเกษียณ</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <input type="text" id="edit-oc-age" placeholder="อายุ">
+        <input type="text" id="edit-oc-height" placeholder="ส่วนสูง">
+        <input type="text" id="edit-oc-weight" placeholder="น้ำหนัก">
+        <input type="text" id="edit-oc-blood" placeholder="กรุ๊ปเลือด">
+      </div>
+      <input type="file" accept="image/*" onchange="handleImageUpload(this, '#edit-oc-avatar')">
+      <img id="edit-oc-avatar-preview" src="" style="max-width:80px; max-height:80px; object-fit:cover; border-radius:8px; display:none; margin-top:6px;" alt="preview">
+      <input type="text" id="edit-oc-avatar" placeholder="ลิงก์รูป GIF อวตาร (URL)">
+      <input type="text" id="edit-oc-music" placeholder="ลิงก์เพลง YouTube">
+      <textarea id="edit-oc-personal" placeholder="ข้อมูลส่วนตัว..." rows="2"></textarea>
+      <textarea id="edit-oc-personality" placeholder="อุปนิสัย..." rows="2"></textarea>
+      <textarea id="edit-oc-background" placeholder="ประวัติ Background..." rows="3"></textarea>
+      <div class="modal-actions">
+        <button onclick="saveOCEdit()" class="btn-submit">บันทึก</button>
+        <button onclick="closeOCModal()" class="btn-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-song" class="modal">
+    <div class="modal-content">
+      <h3>แก้ไขข้อมูลเพลง</h3>
+      <input type="hidden" id="edit-song-index">
+      <input type="text" id="edit-song-title" placeholder="ชื่อเพลง / ชื่อธีม *" required>
+      <input type="text" id="edit-song-artist" placeholder="ชื่อศิลปิน">
+      <input type="text" id="edit-song-url" placeholder="ลิงก์ YouTube" required>
+      <div class="modal-actions">
+        <button onclick="saveSongEdit()" class="btn-submit">บันทึก</button>
+        <button onclick="closeSongModal()" class="btn-cancel">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
